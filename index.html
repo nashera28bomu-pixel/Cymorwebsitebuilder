@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cymor Website Builder</title>
+<meta name="description" content="Describe a website. Get a live, deployed site in under a minute." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A1128;
+    --bg-panel:#0F1836;
+    --grid-line:rgba(122,162,255,0.10);
+    --ink:#1B3A6B;
+    --ink-bright:#3E6CC4;
+    --amber:#FF8C42;
+    --green:#3ECF8E;
+    --red:#FF6B6B;
+    --text:#EAF0FF;
+    --text-dim:#8B9BC4;
+    --border:rgba(122,162,255,0.16);
+    --radius:16px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    background:
+      linear-gradient(var(--grid-line) 1px, transparent 1px) 0 0/40px 40px,
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px) 0 0/40px 40px,
+      var(--bg);
+    color:var(--text);
+    font-family:'Inter',system-ui,sans-serif;
+    line-height:1.6;
+    min-height:100vh;
+  }
+  a{color:inherit;}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px;}
+  h1,h2,h3{font-family:'Space Grotesk',sans-serif;letter-spacing:-0.02em;}
+  .mono{font-family:'JetBrains Mono',monospace;}
+
+  header{padding:28px 0;}
+  .brand{display:flex;align-items:center;gap:10px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.15rem;}
+  .brand .dot{width:8px;height:8px;background:var(--amber);border-radius:50%;box-shadow:0 0 10px var(--amber);}
+  .brand small{font-family:'JetBrains Mono',monospace;font-weight:400;color:var(--text-dim);font-size:0.7rem;margin-left:2px;letter-spacing:0.05em;}
+
+  .hero{padding:40px 0 60px;text-align:center;}
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:8px;
+    font-family:'JetBrains Mono',monospace;font-size:0.75rem;letter-spacing:0.08em;color:var(--amber);
+    border:1px solid var(--border);padding:6px 14px;border-radius:999px;margin-bottom:22px;
+  }
+  .hero h1{font-size:clamp(1.9rem,4.5vw,3.1rem);font-weight:700;max-width:680px;margin:0 auto 16px;}
+  .hero p{color:var(--text-dim);max-width:520px;margin:0 auto 36px;font-size:1.02rem;}
+
+  .prompt-panel{
+    background:var(--bg-panel);border:1px solid var(--border);border-radius:var(--radius);
+    padding:22px;max-width:640px;margin:0 auto;
+    box-shadow:0 20px 60px -20px rgba(0,0,0,0.5);
+  }
+  .prompt-panel textarea{
+    width:100%;min-height:88px;background:transparent;border:none;color:var(--text);
+    font-family:'Inter',sans-serif;font-size:1rem;resize:vertical;outline:none;
+  }
+  .prompt-panel textarea::placeholder{color:var(--text-dim);}
+  .prompt-footer{display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:14px;border-top:1px solid var(--border);}
+  .hint{font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--text-dim);}
+  .btn{
+    font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.95rem;
+    background:var(--amber);color:#0A1128;border:none;padding:12px 24px;border-radius:999px;
+    cursor:pointer;transition:transform .15s, opacity .15s;
+  }
+  .btn:hover{transform:translateY(-1px);}
+  .btn:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+  .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text);}
+
+  /* Pipeline diagram */
+  .pipeline{display:none;margin:48px auto 0;max-width:760px;}
+  .pipeline.active{display:block;}
+  .pipeline-track{display:flex;justify-content:space-between;position:relative;padding:0 10px;}
+  .pipeline-track::before{
+    content:'';position:absolute;top:19px;left:30px;right:30px;height:1px;
+    background:repeating-linear-gradient(90deg, var(--border) 0 6px, transparent 6px 12px);
+    z-index:0;
+  }
+  .node{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:10px;flex:1;}
+  .node-dot{
+    width:38px;height:38px;border-radius:50%;background:var(--bg-panel);border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:var(--text-dim);
+    transition:all .3s;
+  }
+  .node.active .node-dot{border-color:var(--amber);color:var(--amber);box-shadow:0 0 16px rgba(255,140,66,0.4);animation:pulse 1.4s ease-in-out infinite;}
+  .node.done .node-dot{background:var(--green);border-color:var(--green);color:#0A1128;}
+  .node.failed .node-dot{background:var(--red);border-color:var(--red);color:#0A1128;}
+  .node-label{font-size:0.72rem;color:var(--text-dim);text-align:center;max-width:80px;}
+  .node.active .node-label, .node.done .node-label{color:var(--text);}
+  @keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.08);}}
+  @media (prefers-reduced-motion: reduce){ .node.active .node-dot{animation:none;} }
+
+  .status-line{text-align:center;margin-top:20px;font-family:'JetBrains Mono',monospace;font-size:0.85rem;color:var(--text-dim);}
+  .status-line.error{color:var(--red);}
+
+  /* Result card */
+  .result{display:none;margin:32px auto 0;max-width:640px;background:var(--bg-panel);border:1px solid var(--green);border-radius:var(--radius);padding:26px;}
+  .result.show{display:block;}
+  .result-header{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+  .result-header .dot{width:8px;height:8px;background:var(--green);border-radius:50%;}
+  .result h3{font-size:1.1rem;}
+  .result-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;}
+  .result-link{font-family:'JetBrains Mono',monospace;font-size:0.85rem;color:var(--ink-bright);word-break:break-all;}
+
+  /* History */
+  .history{padding:70px 0 90px;}
+  .history-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:28px;}
+  .history-head h2{font-size:1.4rem;}
+  .history-head span{font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:var(--text-dim);}
+  .project-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px;}
+  .project-card{background:var(--bg-panel);border:1px solid var(--border);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:10px;}
+  .project-card h4{font-size:1rem;}
+  .badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:0.68rem;padding:3px 10px;border-radius:999px;width:fit-content;}
+  .badge.deployed{background:rgba(62,207,142,0.15);color:var(--green);}
+  .badge.failed{background:rgba(255,107,107,0.15);color:var(--red);}
+  .badge.pending{background:rgba(255,140,66,0.15);color:var(--amber);}
+  .card-links{display:flex;gap:12px;flex-wrap:wrap;font-size:0.82rem;}
+  .card-links a, .card-links button{color:var(--ink-bright);background:none;border:none;cursor:pointer;font-size:0.82rem;font-family:'Inter',sans-serif;padding:0;}
+  .card-links button.delete{color:var(--red);}
+  .empty-state{color:var(--text-dim);font-family:'JetBrains Mono',monospace;font-size:0.85rem;text-align:center;padding:40px 0;}
+
+  footer{border-top:1px solid var(--border);padding:26px 0;text-align:center;color:var(--text-dim);font-size:0.8rem;}
+
+  @media (max-width:600px){
+    .pipeline-track{flex-wrap:wrap;gap:16px 0;}
+    .pipeline-track::before{display:none;}
+    .node{flex:1 1 30%;}
+  }
+</style>
+</head>
+<body>
+
+<header class="wrap">
+  <div class="brand">Cymor <span class="dot"></span> <small>WEBSITE BUILDER</small></div>
+</header>
+
+<section class="hero wrap">
+  <span class="eyebrow">● PROMPT → LIVE URL, END TO END</span>
+  <h1>Describe the site. We draft it, build it, and ship it live.</h1>
+  <p>One prompt becomes a deployed website with source on GitHub and a ZIP you can keep — no build step, no config.</p>
+
+  <div class="prompt-panel">
+    <textarea id="promptInput" placeholder="e.g. Create a modern law firm website with online booking"></textarea>
+    <div class="prompt-footer">
+      <span class="hint">6 templates · SaaS, Agency, Restaurant, Gym, School, Business</span>
+      <button class="btn" id="generateBtn">Generate</button>
+    </div>
+  </div>
+
+  <div class="pipeline" id="pipeline">
+    <div class="pipeline-track" id="pipelineTrack"></div>
+    <div class="status-line" id="statusLine"></div>
+  </div>
+
+  <div class="result" id="resultCard">
+    <div class="result-header"><span class="dot"></span><h3>Live</h3></div>
+    <div class="result-link mono" id="resultLiveUrl"></div>
+    <div class="result-actions">
+      <a class="btn" id="resultVisit" target="_blank" rel="noopener">Visit site</a>
+      <a class="btn btn-ghost" id="resultRepo" target="_blank" rel="noopener">View on GitHub</a>
+      <button class="btn btn-ghost" id="resultDownload">Download ZIP</button>
+    </div>
+  </div>
+</section>
+
+<section class="history wrap">
+  <div class="history-head">
+    <h2>Project history</h2>
+    <span id="projectCount">0 projects</span>
+  </div>
+  <div class="project-grid" id="projectGrid"></div>
+</section>
+
+<footer>Cymor Website Builder — built for zero-budget, mobile-first deployment.</footer>
+
+<script>
+const STEPS = [
+  { key: 'classifying', label: 'Analyze' },
+  { key: 'writing_content', label: 'Content' },
+  { key: 'validating', label: 'Validate' },
+  { key: 'committing', label: 'GitHub' },
+  { key: 'deploying', label: 'Deploy' },
+  { key: 'deployed', label: 'Live' }
+];
+
+const el = (id) => document.getElementById(id);
+const pipeline = el('pipeline');
+const pipelineTrack = el('pipelineTrack');
+const statusLine = el('statusLine');
+const resultCard = el('resultCard');
+const generateBtn = el('generateBtn');
+const promptInput = el('promptInput');
+
+function renderPipeline(currentStatus, failed) {
+  pipelineTrack.innerHTML = '';
+  const currentIndex = STEPS.findIndex((s) => s.key === currentStatus);
+
+  STEPS.forEach((step, i) => {
+    const node = document.createElement('div');
+    let cls = 'node';
+    if (failed && i === currentIndex) cls += ' failed';
+    else if (i < currentIndex || (i === currentIndex && currentStatus === 'deployed')) cls += ' done';
+    else if (i === currentIndex) cls += ' active';
+    node.className = cls;
+    node.innerHTML = `<div class="node-dot">${i < currentIndex || currentStatus === 'deployed' ? '✓' : String(i + 1).padStart(2, '0')}</div><div class="node-label">${step.label}</div>`;
+    pipelineTrack.appendChild(node);
+  });
+}
+
+async function pollStatus(projectId) {
+  const poll = async () => {
+    const res = await fetch(`/api/project/${projectId}/status`);
+    const data = await res.json();
+
+    const failed = data.status === 'failed';
+    renderPipeline(data.status, failed);
+
+    if (failed) {
+      statusLine.textContent = `Failed: ${data.error || 'unknown error'}`;
+      statusLine.classList.add('error');
+      generateBtn.disabled = false;
+      return;
+    }
+
+    statusLine.textContent = data.status === 'deployed' ? 'Deployed successfully' : `Working: ${data.status.replace('_', ' ')}...`;
+
+    if (data.status === 'deployed') {
+      showResult(data);
+      generateBtn.disabled = false;
+      loadProjects();
+      return;
+    }
+
+    setTimeout(poll, 2500);
+  };
+  poll();
+}
+
+function showResult(data) {
+  resultCard.classList.add('show');
+  el('resultLiveUrl').textContent = data.liveUrl;
+  el('resultVisit').href = data.liveUrl;
+  el('resultRepo').href = data.repoUrl;
+  el('resultDownload').onclick = () => window.open(`/api/project/${data._id}/download`, '_blank');
+}
+
+generateBtn.addEventListener('click', async () => {
+  const prompt = promptInput.value.trim();
+  if (!prompt) return;
+
+  generateBtn.disabled = true;
+  resultCard.classList.remove('show');
+  pipeline.classList.add('active');
+  statusLine.classList.remove('error');
+  renderPipeline('classifying', false);
+  statusLine.textContent = 'Working: classifying...';
+
+  try {
+    const res = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt })
+    });
+    if (!res.ok) throw new Error((await res.json()).error || 'Request failed');
+    const data = await res.json();
+    pollStatus(data.projectId);
+  } catch (err) {
+    statusLine.textContent = `Failed to start: ${err.message}`;
+    statusLine.classList.add('error');
+    generateBtn.disabled = false;
+  }
+});
+
+function badgeClass(status) {
+  if (status === 'deployed') return 'deployed';
+  if (status === 'failed') return 'failed';
+  return 'pending';
+}
+
+async function loadProjects() {
+  const res = await fetch('/api/projects');
+  const projects = await res.json();
+  const grid = el('projectGrid');
+  el('projectCount').textContent = `${projects.length} project${projects.length === 1 ? '' : 's'}`;
+
+  if (projects.length === 0) {
+    grid.innerHTML = '<div class="empty-state">No projects yet — generate your first site above.</div>';
+    return;
+  }
+
+  grid.innerHTML = projects
+    .map(
+      (p) => `
+    <div class="project-card">
+      <span class="badge ${badgeClass(p.status)}">${p.status}</span>
+      <h4>${p.businessName || p.category}</h4>
+      <div class="card-links">
+        ${p.liveUrl ? `<a href="${p.liveUrl}" target="_blank" rel="noopener">Visit</a>` : ''}
+        ${p.repoUrl ? `<a href="${p.repoUrl}" target="_blank" rel="noopener">GitHub</a>` : ''}
+        ${p.status === 'deployed' ? `<a href="/api/project/${p._id}/download">Download ZIP</a>` : ''}
+        <button class="delete" onclick="deleteProject('${p._id}')">Delete</button>
+      </div>
+    </div>`
+    )
+    .join('');
+}
+
+async function deleteProject(id) {
+  await fetch(`/api/project/${id}`, { method: 'DELETE' });
+  loadProjects();
+}
+window.deleteProject = deleteProject;
+
+loadProjects();
+</script>
+</body>
+</html>
