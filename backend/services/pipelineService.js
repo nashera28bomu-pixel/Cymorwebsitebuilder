@@ -1,4 +1,8 @@
-const { nanoid } = require('nanoid');
+const { customAlphabet } = require('nanoid');
+// Lowercase alphanumeric only — the default nanoid alphabet includes '-' and '_',
+// which can collide with hyphens in the slugified name and produce sequences
+// like '---' that Vercel's project-name validator rejects.
+const nanoid = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyz', 6);
 const Project = require('../models/Project');
 const { classifyCategory, generateContent } = require('./aiService');
 const { mergeContent } = require('./generatorService');
@@ -69,7 +73,12 @@ async function executePipeline(projectId) {
     const { valid, errors } = validateHtml(html);
     if (!valid) throw new Error(`Validation failed: ${errors.join('; ')}`);
 
-    const slug = `cymor-${(content.businessNameShort || category).toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${nanoid(6)}`;
+    const namePart = (content.businessNameShort || category)
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
+    const slug = `cymor-${namePart}-${nanoid()}`;
     project.slug = slug;
     project.html = html;
 
